@@ -3,7 +3,13 @@ const teaTypes = [
   { key: "black", name: "Black", temp: "200-212 F", range: "3-5 min", seconds: [180, 240, 300] },
   { key: "oolong", name: "Oolong", temp: "185-205 F", range: "3-5 min", seconds: [180, 240, 300] },
   { key: "white", name: "White", temp: "170-185 F", range: "4-5 min", seconds: [240, 270, 300] },
-  { key: "herbal", name: "Herbal", temp: "212 F", range: "5-7 min", seconds: [300, 360, 420] }
+  { key: "herbal", name: "Herbal", temp: "212 F", range: "5-7 min", seconds: [300, 360, 420] },
+  { key: "assam", name: "Assam", temp: "200-212 F", range: "3-5 min", seconds: [180, 240, 300] },
+  { key: "sencha", name: "Sencha", temp: "160-175 F", range: "1-2 min", seconds: [60, 90, 120] },
+  { key: "matcha", name: "Matcha", temp: "160-175 F", range: "30-60 sec whisk", seconds: [30, 45, 60] },
+  { key: "earl-grey", name: "Earl Grey", temp: "200-212 F", range: "3-5 min", seconds: [180, 240, 300] },
+  { key: "chamomile", name: "Chamomile", temp: "212 F", range: "5-7 min", seconds: [300, 360, 420] },
+  { key: "puerh", name: "Pu-erh", temp: "195-212 F", range: "2-4 min", seconds: [120, 180, 240] }
 ];
 
 const tasteSuggestions = {
@@ -25,6 +31,7 @@ const clockText = document.querySelector("#clockText");
 const startTimer = document.querySelector("#startTimer");
 const pauseTimer = document.querySelector("#pauseTimer");
 const resetTimer = document.querySelector("#resetTimer");
+const timerStatus = document.querySelector("#timerStatus");
 const waterAmount = document.querySelector("#waterAmount");
 const calculatorResult = document.querySelector("#calculatorResult");
 const steepList = document.querySelector("#steepList");
@@ -39,6 +46,7 @@ let selectedTea = teaTypes[0];
 let remainingSeconds = selectedTea.seconds[0];
 let timerId = null;
 let currentSteep = 0;
+let audioContext = null;
 
 function formatTime(totalSeconds) {
   const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
@@ -59,6 +67,10 @@ function stopTimer() {
   }
 }
 
+function setTimerStatus(message) {
+  timerStatus.textContent = message;
+}
+
 function setRemaining(seconds) {
   remainingSeconds = seconds;
   clockText.textContent = formatTime(remainingSeconds);
@@ -67,6 +79,7 @@ function setRemaining(seconds) {
 function resetToSelectedDuration() {
   stopTimer();
   setRemaining(Number(timerSeconds.value));
+  setTimerStatus("Ready to brew.");
 }
 
 function renderTeaTypes() {
@@ -105,6 +118,49 @@ function selectTea(key) {
 
   renderTeaTypes();
   resetToSelectedDuration();
+}
+
+function prepareFinishFeedback() {
+  if (!audioContext && (window.AudioContext || window.webkitAudioContext)) {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    audioContext = new AudioContext();
+  }
+
+  if (audioContext?.state === "suspended") {
+    audioContext.resume();
+  }
+}
+
+function playFinishSound() {
+  if (!audioContext) {
+    return;
+  }
+
+  const now = audioContext.currentTime;
+  [0, 0.18, 0.36].forEach((offset) => {
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(660 + offset * 500, now + offset);
+    gain.gain.setValueAtTime(0.001, now + offset);
+    gain.gain.exponentialRampToValueAtTime(0.18, now + offset + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.16);
+
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.start(now + offset);
+    oscillator.stop(now + offset + 0.18);
+  });
+}
+
+function notifyFinish() {
+  setTimerStatus("Done. Taste it while it is fresh.");
+  playFinishSound();
+
+  if ("vibrate" in navigator) {
+    navigator.vibrate([160, 80, 160]);
+  }
 }
 
 function updateCalculator() {
@@ -220,15 +276,22 @@ startTimer.addEventListener("click", () => {
     return;
   }
 
+  prepareFinishFeedback();
+  setTimerStatus(`Brewing ${selectedTea.name.toLowerCase()} tea.`);
+
   timerId = window.setInterval(() => {
     setRemaining(Math.max(remainingSeconds - 1, 0));
     if (remainingSeconds === 0) {
       stopTimer();
+      notifyFinish();
     }
   }, 1000);
 });
 
-pauseTimer.addEventListener("click", stopTimer);
+pauseTimer.addEventListener("click", () => {
+  stopTimer();
+  setTimerStatus("Paused.");
+});
 resetTimer.addEventListener("click", resetToSelectedDuration);
 waterAmount.addEventListener("input", updateCalculator);
 
@@ -237,6 +300,7 @@ nextSteep.addEventListener("click", () => {
   renderSteeps();
   stopTimer();
   setRemaining(resteeps[currentSteep]);
+  setTimerStatus(`Ready for steep ${currentSteep + 1}.`);
 });
 
 resetSteeps.addEventListener("click", () => {
@@ -244,6 +308,7 @@ resetSteeps.addEventListener("click", () => {
   renderSteeps();
   stopTimer();
   setRemaining(resteeps[currentSteep]);
+  setTimerStatus("Ready for steep 1.");
 });
 
 profileForm.addEventListener("submit", (event) => {
