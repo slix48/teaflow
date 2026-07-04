@@ -174,7 +174,8 @@ textarea {
 }
 
 .timer-panel,
-.profile-panel {
+.profile-panel,
+.collection-panel {
   grid-column: span 8;
 }
 
@@ -451,6 +452,59 @@ textarea {
   font-weight: 750;
 }
 
+.collection-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.collection-form label:nth-last-of-type(1) {
+  grid-column: span 2;
+}
+
+.collection-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.collection-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: start;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  background: rgba(248, 252, 250, 0.84);
+}
+
+.collection-item h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.collection-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.collection-meta span {
+  border-left: 3px solid var(--green);
+  padding-left: 8px;
+}
+
+.collection-notes {
+  margin: 10px 0 0;
+  font-size: 0.92rem;
+  font-weight: 650;
+}
+
 .profile-form {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -514,6 +568,7 @@ textarea {
 
   .timer-panel,
   .profile-panel,
+  .collection-panel,
   .calculator-panel,
   .resteep-panel,
   .notes-panel,
@@ -558,6 +613,7 @@ textarea {
   .calculator-form,
   .calculator-result,
   .profile-form,
+  .collection-form,
   .note-options {
     grid-template-columns: 1fr;
   }
@@ -590,8 +646,15 @@ textarea {
     grid-template-columns: 1fr;
   }
 
-  .profile-item button {
+  .profile-item button,
+  .collection-item button {
     width: 100%;
+  }
+
+  .collection-form label:nth-last-of-type(1),
+  .collection-item {
+    grid-column: auto;
+    grid-template-columns: 1fr;
   }
 
   .backup-actions {

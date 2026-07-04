@@ -20,6 +20,8 @@ Most tea timers stop at countdowns. TeaFlow keeps the practical brewing context 
 - Brew calculator with metric, US kitchen, and combined display modes.
 - Brew history with tea type, water, tea amount, temperature, steep time, rating, and notes.
 - Best-brew insight, such as the highest-rated tea temperature and steep time.
+- Tea collection pantry with brand, origin, harvest year, caffeine, flavor notes, favorite recipe, quantity remaining, and brew count.
+- Automatic quantity decrement when a logged brew uses a pantry tea.
 - Versioned JSON backup import/export for saved profiles and brew history.
 - Loose-leaf re-steep tracker for 60, 75, and 90 second steeps.
 - Taste-note suggestions for bitter, weak, grassy, strong, and perfect brews.
@@ -111,6 +113,7 @@ TeaFlow exports a JSON file with this top-level shape:
   "teaflowBackupVersion": 1,
   "exportedAt": "2026-07-04T00:00:00.000Z",
   "profiles": [],
-  "history": []
+  "history": [],
+  "collection": []
 }
 ```

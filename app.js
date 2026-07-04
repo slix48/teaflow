@@ -34,6 +34,7 @@ const tasteSuggestions = {
 const resteeps = [60, 75, 90];
 const profileKey = "teaflow.profiles";
 const historyKey = "teaflow.history";
+const collectionKey = "teaflow.collection";
 const backupVersion = 1;
 
 const teaTypeGrid = document.querySelector("#teaTypeGrid");
@@ -63,6 +64,7 @@ const suggestionText = document.querySelector("#suggestionText");
 const profileForm = document.querySelector("#profileForm");
 const profiles = document.querySelector("#profiles");
 const brewLogForm = document.querySelector("#brewLogForm");
+const pantryTea = document.querySelector("#pantryTea");
 const brewRating = document.querySelector("#brewRating");
 const brewSteepTime = document.querySelector("#brewSteepTime");
 const brewNotes = document.querySelector("#brewNotes");
@@ -72,6 +74,8 @@ const exportBackup = document.querySelector("#exportBackup");
 const importBackup = document.querySelector("#importBackup");
 const backupFile = document.querySelector("#backupFile");
 const backupStatus = document.querySelector("#backupStatus");
+const collectionForm = document.querySelector("#collectionForm");
+const collectionList = document.querySelector("#collectionList");
 
 let selectedTea = teaTypes[0];
 let remainingSeconds = selectedTea.seconds[0];
@@ -405,6 +409,19 @@ function saveHistory(items) {
   window.localStorage.setItem(historyKey, JSON.stringify(items));
 }
 
+function loadCollection() {
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(collectionKey) || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveCollection(items) {
+  window.localStorage.setItem(collectionKey, JSON.stringify(items));
+}
+
 function setBackupStatus(message) {
   backupStatus.textContent = message;
 }
@@ -414,7 +431,8 @@ function buildBackup() {
     teaflowBackupVersion: backupVersion,
     exportedAt: new Date().toISOString(),
     profiles: loadProfiles(),
-    history: loadHistory()
+    history: loadHistory(),
+    collection: loadCollection()
   };
 }
 
@@ -431,7 +449,7 @@ function downloadBackup() {
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
-  setBackupStatus(`Exported ${backup.profiles.length} profiles and ${backup.history.length} history entries.`);
+  setBackupStatus(`Exported ${backup.profiles.length} profiles, ${backup.history.length} history entries, and ${backup.collection.length} pantry teas.`);
 }
 
 function normalizeBackupArray(value) {
@@ -445,12 +463,15 @@ function importBackupData(data) {
 
   const importedProfiles = normalizeBackupArray(data.profiles);
   const importedHistory = normalizeBackupArray(data.history);
+  const importedCollection = normalizeBackupArray(data.collection);
 
   saveProfiles(importedProfiles);
   saveHistory(importedHistory);
+  saveCollection(importedCollection);
   renderProfiles();
   renderHistory();
-  setBackupStatus(`Imported ${importedProfiles.length} profiles and ${importedHistory.length} history entries.`);
+  renderCollection();
+  setBackupStatus(`Imported ${importedProfiles.length} profiles, ${importedHistory.length} history entries, and ${importedCollection.length} pantry teas.`);
 }
 
 function renderHistory() {
@@ -476,11 +497,12 @@ function renderHistory() {
     const meta = document.createElement("p");
     meta.className = "history-meta";
     [
+      brew.collectionName ? `Pantry: ${brew.collectionName}` : "",
       brew.waterLabel,
       brew.teaAmountLabel,
       brew.tempLabel,
       brew.steepLabel
-    ].forEach((text) => {
+    ].filter(Boolean).forEach((text) => {
       const span = document.createElement("span");
       span.textContent = text;
       meta.append(span);
@@ -512,6 +534,109 @@ function buildHistoryInsight(items) {
   })[0];
 
   return `You rated ${best.teaName} highest at ${best.tempLabel} for ${best.steepLabel}.`;
+}
+
+function renderPantryOptions() {
+  const items = loadCollection();
+  const currentValue = pantryTea.value;
+
+  pantryTea.replaceChildren();
+
+  const none = document.createElement("option");
+  none.value = "";
+  none.textContent = "No pantry item";
+  pantryTea.append(none);
+
+  items.forEach((tea) => {
+    const option = document.createElement("option");
+    option.value = tea.id;
+    option.textContent = `${tea.name}${tea.brand ? ` - ${tea.brand}` : ""}`;
+    pantryTea.append(option);
+  });
+
+  if (items.some((tea) => tea.id === currentValue)) {
+    pantryTea.value = currentValue;
+  }
+}
+
+function renderCollection() {
+  const items = loadCollection();
+  collectionList.replaceChildren();
+  renderPantryOptions();
+
+  if (!items.length) {
+    const empty = document.createElement("p");
+    empty.className = "empty-state";
+    empty.textContent = "No teas in your collection yet.";
+    collectionList.append(empty);
+    return;
+  }
+
+  items.forEach((tea) => {
+    const item = document.createElement("article");
+    item.className = "collection-item";
+
+    const content = document.createElement("div");
+    const title = document.createElement("h3");
+    title.textContent = `${tea.name}${tea.brand ? ` - ${tea.brand}` : ""}`;
+
+    const meta = document.createElement("p");
+    meta.className = "collection-meta";
+    [
+      tea.origin || "Origin not set",
+      `${formatGrams(tea.quantityGrams)} g left`,
+      `${tea.brewCount || 0} brews`,
+      `${tea.caffeine} caffeine`,
+      tea.harvestYear ? `Harvest ${tea.harvestYear}` : "",
+      tea.cost ? `$${formatGrams(tea.cost)}` : "",
+      tea.favoriteRecipe || ""
+    ].filter(Boolean).forEach((text) => {
+      const span = document.createElement("span");
+      span.textContent = text;
+      meta.append(span);
+    });
+
+    content.append(title, meta);
+
+    if (tea.flavorNotes) {
+      const notes = document.createElement("p");
+      notes.className = "collection-notes";
+      notes.textContent = tea.flavorNotes;
+      content.append(notes);
+    }
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.textContent = "Delete";
+    remove.addEventListener("click", () => {
+      saveCollection(loadCollection().filter((saved) => saved.id !== tea.id));
+      renderCollection();
+    });
+
+    item.append(content, remove);
+    collectionList.append(item);
+  });
+}
+
+function applyCollectionBrew(collectionId, gramsUsed) {
+  if (!collectionId) {
+    return null;
+  }
+
+  const items = loadCollection();
+  const tea = items.find((item) => item.id === collectionId);
+  if (!tea) {
+    return null;
+  }
+
+  if (Number.isFinite(gramsUsed) && gramsUsed > 0) {
+    tea.quantityGrams = Math.max(0, Math.round((Number(tea.quantityGrams) - gramsUsed) * 10) / 10);
+  }
+  tea.brewCount = Number(tea.brewCount || 0) + 1;
+  tea.lastBrewedAt = new Date().toISOString();
+  saveCollection(items);
+  renderCollection();
+  return tea;
 }
 
 function renderProfiles() {
@@ -634,14 +759,46 @@ profileForm.addEventListener("submit", (event) => {
   renderProfiles();
 });
 
+collectionForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const tea = {
+    id: window.crypto?.randomUUID ? window.crypto.randomUUID() : Date.now().toString(),
+    brand: document.querySelector("#collectionBrand").value.trim(),
+    name: document.querySelector("#collectionName").value.trim(),
+    origin: document.querySelector("#collectionOrigin").value.trim(),
+    purchaseDate: document.querySelector("#collectionPurchaseDate").value,
+    harvestYear: document.querySelector("#collectionHarvestYear").value,
+    cost: Number(document.querySelector("#collectionCost").value) || 0,
+    quantityGrams: Number(document.querySelector("#collectionQuantity").value) || 0,
+    caffeine: document.querySelector("#collectionCaffeine").value,
+    flavorNotes: document.querySelector("#collectionNotes").value.trim(),
+    favoriteRecipe: document.querySelector("#collectionRecipe").value.trim(),
+    brewCount: 0,
+    createdAt: new Date().toISOString()
+  };
+
+  if (!tea.name) {
+    return;
+  }
+
+  saveCollection([tea, ...loadCollection()]);
+  collectionForm.reset();
+  document.querySelector("#collectionQuantity").value = "50";
+  document.querySelector("#collectionCaffeine").value = "medium";
+  renderCollection();
+});
+
 brewLogForm.addEventListener("submit", (event) => {
   event.preventDefault();
 
   const calculation = latestCalculation || getBrewCalculation();
+  const selectedCollectionId = pantryTea.value;
   const teaAmountLabel = calculation.isTeaBags
     ? `${calculation.bags} tea bag${calculation.bags === 1 ? "" : "s"}`
     : `${formatGrams(calculation.grams)} g / about ${formatTablespoons(calculation.tablespoons)} tbsp`;
   const actualSteepSeconds = parseSteepInput(brewSteepTime.value, calculation.steepSeconds);
+  const pantryItem = applyCollectionBrew(selectedCollectionId, calculation.isTeaBags ? 0 : calculation.grams);
 
   const brew = {
     id: window.crypto?.randomUUID ? window.crypto.randomUUID() : Date.now().toString(),
@@ -661,7 +818,9 @@ brewLogForm.addEventListener("submit", (event) => {
     steepSeconds: actualSteepSeconds,
     steepLabel: formatShortTime(actualSteepSeconds),
     rating: brewRating.value,
-    notes: brewNotes.value.trim()
+    notes: brewNotes.value.trim(),
+    collectionId: pantryItem?.id || "",
+    collectionName: pantryItem?.name || ""
   };
 
   saveHistory([brew, ...loadHistory()].slice(0, 50));
@@ -706,6 +865,7 @@ renderSteeps();
 renderNotes();
 renderProfiles();
 renderHistory();
+renderCollection();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {

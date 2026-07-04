@@ -117,6 +117,12 @@
         <p class="calculator-note" id="calculatorNote">Normal loose-leaf ratio. Spoon estimates vary by tea shape.</p>
         <form id="brewLogForm" class="brew-log-form">
           <label>
+            Pantry tea
+            <select id="pantryTea">
+              <option value="">No pantry item</option>
+            </select>
+          </label>
+          <label>
             Rating
             <select id="brewRating">
               <option value="5">5 - excellent</option>
@@ -185,6 +191,62 @@
           <input id="backupFile" type="file" accept="application/json,.json" hidden>
         </div>
         <p class="backup-status" id="backupStatus" aria-live="polite">Backup includes profiles and brew history.</p>
+      </section>
+
+      <section class="panel collection-panel" aria-labelledby="collection-title">
+        <div class="section-heading">
+          <p class="eyebrow">Pantry</p>
+          <h2 id="collection-title">Tea collection</h2>
+        </div>
+        <form id="collectionForm" class="collection-form">
+          <label>
+            Brand
+            <input id="collectionBrand" maxlength="60" placeholder="Ippodo">
+          </label>
+          <label>
+            Tea name
+            <input id="collectionName" required maxlength="80" placeholder="Sencha">
+          </label>
+          <label>
+            Origin
+            <input id="collectionOrigin" maxlength="80" placeholder="Uji, Japan">
+          </label>
+          <label>
+            Purchase date
+            <input id="collectionPurchaseDate" type="date">
+          </label>
+          <label>
+            Harvest year
+            <input id="collectionHarvestYear" type="number" min="1900" max="2100" step="1">
+          </label>
+          <label>
+            Cost
+            <input id="collectionCost" type="number" min="0" step="0.01" placeholder="18.00">
+          </label>
+          <label>
+            Quantity remaining
+            <input id="collectionQuantity" required type="number" min="0" step="1" value="50">
+          </label>
+          <label>
+            Caffeine
+            <select id="collectionCaffeine">
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+              <option value="high">High</option>
+              <option value="none">None</option>
+            </select>
+          </label>
+          <label>
+            Favorite recipe
+            <input id="collectionRecipe" maxlength="80" placeholder="5 g, 240 ml, 167 F, 2:00">
+          </label>
+          <label>
+            Flavor notes
+            <textarea id="collectionNotes" rows="3" maxlength="180" placeholder="Umami, sweet grass, steamed greens..."></textarea>
+          </label>
+          <button type="submit" class="primary">Add tea</button>
+        </form>
+        <div class="collection-list" id="collectionList"></div>
       </section>
 
       <section class="panel profile-panel" aria-labelledby="profile-title">
