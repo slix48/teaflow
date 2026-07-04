@@ -34,6 +34,7 @@ const tasteSuggestions = {
 const resteeps = [60, 75, 90];
 const profileKey = "teaflow.profiles";
 const historyKey = "teaflow.history";
+const backupVersion = 1;
 
 const teaTypeGrid = document.querySelector("#teaTypeGrid");
 const tempText = document.querySelector("#tempText");
@@ -67,6 +68,10 @@ const brewSteepTime = document.querySelector("#brewSteepTime");
 const brewNotes = document.querySelector("#brewNotes");
 const historyInsight = document.querySelector("#historyInsight");
 const historyList = document.querySelector("#historyList");
+const exportBackup = document.querySelector("#exportBackup");
+const importBackup = document.querySelector("#importBackup");
+const backupFile = document.querySelector("#backupFile");
+const backupStatus = document.querySelector("#backupStatus");
 
 let selectedTea = teaTypes[0];
 let remainingSeconds = selectedTea.seconds[0];
@@ -400,6 +405,54 @@ function saveHistory(items) {
   window.localStorage.setItem(historyKey, JSON.stringify(items));
 }
 
+function setBackupStatus(message) {
+  backupStatus.textContent = message;
+}
+
+function buildBackup() {
+  return {
+    teaflowBackupVersion: backupVersion,
+    exportedAt: new Date().toISOString(),
+    profiles: loadProfiles(),
+    history: loadHistory()
+  };
+}
+
+function downloadBackup() {
+  const backup = buildBackup();
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  const date = new Date().toISOString().slice(0, 10);
+
+  link.href = url;
+  link.download = `teaflow-backup-${date}.json`;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  setBackupStatus(`Exported ${backup.profiles.length} profiles and ${backup.history.length} history entries.`);
+}
+
+function normalizeBackupArray(value) {
+  return Array.isArray(value) ? value : [];
+}
+
+function importBackupData(data) {
+  if (!data || data.teaflowBackupVersion !== backupVersion) {
+    throw new Error("Unsupported TeaFlow backup file.");
+  }
+
+  const importedProfiles = normalizeBackupArray(data.profiles);
+  const importedHistory = normalizeBackupArray(data.history);
+
+  saveProfiles(importedProfiles);
+  saveHistory(importedHistory);
+  renderProfiles();
+  renderHistory();
+  setBackupStatus(`Imported ${importedProfiles.length} profiles and ${importedHistory.length} history entries.`);
+}
+
 function renderHistory() {
   const items = loadHistory();
   historyList.replaceChildren();
@@ -615,6 +668,35 @@ brewLogForm.addEventListener("submit", (event) => {
   brewNotes.value = "";
   brewRating.value = "5";
   renderHistory();
+});
+
+exportBackup.addEventListener("click", downloadBackup);
+
+importBackup.addEventListener("click", () => {
+  backupFile.click();
+});
+
+backupFile.addEventListener("change", () => {
+  const file = backupFile.files[0];
+  if (!file) {
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    try {
+      importBackupData(JSON.parse(reader.result));
+    } catch {
+      setBackupStatus("Import failed. Choose a valid TeaFlow backup JSON file.");
+    } finally {
+      backupFile.value = "";
+    }
+  });
+  reader.addEventListener("error", () => {
+    setBackupStatus("Import failed. The file could not be read.");
+    backupFile.value = "";
+  });
+  reader.readAsText(file);
 });
 
 selectTea("green");

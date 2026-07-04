@@ -181,7 +181,8 @@ textarea {
 .calculator-panel,
 .resteep-panel,
 .notes-panel,
-.history-panel {
+.history-panel,
+.backup-panel {
   grid-column: span 4;
 }
 
@@ -436,6 +437,20 @@ textarea {
   font-weight: 650;
 }
 
+.backup-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.backup-status {
+  min-height: 22px;
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
 .profile-form {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -502,7 +517,8 @@ textarea {
   .calculator-panel,
   .resteep-panel,
   .notes-panel,
-  .history-panel {
+  .history-panel,
+  .backup-panel {
     grid-column: 1 / -1;
   }
 
@@ -576,5 +592,9 @@ textarea {
 
   .profile-item button {
     width: 100%;
+  }
+
+  .backup-actions {
+    grid-template-columns: 1fr;
   }
 }

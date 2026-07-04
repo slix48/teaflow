@@ -20,6 +20,7 @@ Most tea timers stop at countdowns. TeaFlow keeps the practical brewing context 
 - Brew calculator with metric, US kitchen, and combined display modes.
 - Brew history with tea type, water, tea amount, temperature, steep time, rating, and notes.
 - Best-brew insight, such as the highest-rated tea temperature and steep time.
+- Versioned JSON backup import/export for saved profiles and brew history.
 - Loose-leaf re-steep tracker for 60, 75, and 90 second steeps.
 - Taste-note suggestions for bitter, weak, grassy, strong, and perfect brews.
 - Responsive layout for desktop and phone screens.
@@ -100,3 +101,16 @@ Brewing ranges are practical starting points, not strict rules. Tea leaf size, w
 Tablespoon values are approximate. TeaFlow uses different gram-per-tablespoon densities for different tea shapes, so Assam, Sencha, Silver Needle, Gunpowder Green, and rolled oolong can produce different spoon estimates for the same gram target.
 
 Reference ranges were checked against broad tea brewing guidance from Bon Appetit, The Spruce Eats, and gongfu-style temperature notes for green, oolong, black, dark, and Pu-erh teas.
+
+## Backup Format
+
+TeaFlow exports a JSON file with this top-level shape:
+
+```json
+{
+  "teaflowBackupVersion": 1,
+  "exportedAt": "2026-07-04T00:00:00.000Z",
+  "profiles": [],
+  "history": []
+}
+```
