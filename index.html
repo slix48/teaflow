@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TeaFlow</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="app-header">
+      <img src="assets/nature-background.png" alt="Peaceful misty mountain and garden landscape" class="header-image">
+      <div class="header-copy">
+        <p class="eyebrow">TeaFlow</p>
+        <h1>Brew timer and tasting log</h1>
+      </div>
+    </header>
+
+    <main class="shell">
+      <section class="panel timer-panel" aria-labelledby="timer-title">
+        <div class="section-heading">
+          <p class="eyebrow">Timer</p>
+          <h2 id="timer-title">Tea timer</h2>
+        </div>
+
+        <div class="tea-type-grid" id="teaTypeGrid" aria-label="Choose tea type"></div>
+
+        <div class="timer-readout">
+          <div>
+            <p class="label">Temperature</p>
+            <p class="value" id="tempText">175 F</p>
+          </div>
+          <div>
+            <p class="label">Steep range</p>
+            <p class="value" id="rangeText">2-3 min</p>
+          </div>
+          <div>
+            <p class="label">Timer</p>
+            <p class="clock" id="clockText">02:00</p>
+          </div>
+        </div>
+
+        <div class="time-controls">
+          <label for="timerSeconds">Target steep</label>
+          <select id="timerSeconds"></select>
+          <button type="button" class="primary" id="startTimer">Start</button>
+          <button type="button" id="pauseTimer">Pause</button>
+          <button type="button" id="resetTimer">Reset</button>
+        </div>
+      </section>
+
+      <section class="panel calculator-panel" aria-labelledby="calculator-title">
+        <div class="section-heading">
+          <p class="eyebrow">Ratio</p>
+          <h2 id="calculator-title">Brew calculator</h2>
+        </div>
+        <label for="waterAmount">Water amount</label>
+        <div class="input-row">
+          <input id="waterAmount" type="number" min="50" max="3000" step="25" value="250">
+          <span>ml</span>
+        </div>
+        <p class="calculator-result" id="calculatorResult">250 ml water -> 2-3 g tea</p>
+      </section>
+
+      <section class="panel resteep-panel" aria-labelledby="resteep-title">
+        <div class="section-heading">
+          <p class="eyebrow">Loose leaf</p>
+          <h2 id="resteep-title">Re-steep tracker</h2>
+        </div>
+        <ol class="steep-list" id="steepList"></ol>
+        <div class="resteep-actions">
+          <button type="button" class="primary" id="nextSteep">Next steep</button>
+          <button type="button" id="resetSteeps">Reset</button>
+        </div>
+      </section>
+
+      <section class="panel notes-panel" aria-labelledby="notes-title">
+        <div class="section-heading">
+          <p class="eyebrow">After brewing</p>
+          <h2 id="notes-title">Taste notes</h2>
+        </div>
+        <div class="note-options" id="noteOptions" aria-label="Choose taste note"></div>
+        <div class="suggestion-box">
+          <p class="label">Suggestion</p>
+          <p id="suggestionText">Pick a note to tune your next cup.</p>
+        </div>
+      </section>
+
+      <section class="panel profile-panel" aria-labelledby="profile-title">
+        <div class="section-heading">
+          <p class="eyebrow">Saved brews</p>
+          <h2 id="profile-title">Custom brew profiles</h2>
+        </div>
+
+        <form id="profileForm" class="profile-form">
+          <label>
+            Tea name
+            <input id="profileName" required maxlength="60" placeholder="Jasmine green">
+          </label>
+          <label>
+            Grams of tea
+            <input id="profileGrams" required type="number" min="0.5" max="50" step="0.1" value="2.5">
+          </label>
+          <label>
+            Water amount
+            <input id="profileWater" required type="number" min="50" max="3000" step="25" value="250">
+          </label>
+          <label>
+            Temperature
+            <input id="profileTemp" required type="number" min="120" max="212" step="1" value="175">
+          </label>
+          <label>
+            Steep time
+            <input id="profileTime" required type="text" maxlength="20" value="2:30">
+          </label>
+          <label>
+            Rating
+            <select id="profileRating">
+              <option value="5">5 - favorite</option>
+              <option value="4">4 - very good</option>
+              <option value="3">3 - good</option>
+              <option value="2">2 - needs tuning</option>
+              <option value="1">1 - remake</option>
+            </select>
+          </label>
+          <button type="submit" class="primary">Save profile</button>
+        </form>
+
+        <div class="profiles" id="profiles"></div>
+      </section>
+    </main>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>
