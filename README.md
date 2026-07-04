@@ -18,6 +18,8 @@ Most tea timers stop at countdowns. TeaFlow keeps the practical brewing context 
 - Finish feedback with a soft chime and vibration on supported devices.
 - Custom brew profiles with tea name, grams, water amount, temperature, steep time, and rating.
 - Brew calculator with metric, US kitchen, and combined display modes.
+- Brew history with tea type, water, tea amount, temperature, steep time, rating, and notes.
+- Best-brew insight, such as the highest-rated tea temperature and steep time.
 - Loose-leaf re-steep tracker for 60, 75, and 90 second steeps.
 - Taste-note suggestions for bitter, weak, grassy, strong, and perfect brews.
 - Responsive layout for desktop and phone screens.

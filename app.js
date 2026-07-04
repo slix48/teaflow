@@ -33,6 +33,7 @@ const tasteSuggestions = {
 
 const resteeps = [60, 75, 90];
 const profileKey = "teaflow.profiles";
+const historyKey = "teaflow.history";
 
 const teaTypeGrid = document.querySelector("#teaTypeGrid");
 const tempText = document.querySelector("#tempText");
@@ -60,12 +61,19 @@ const noteOptions = document.querySelector("#noteOptions");
 const suggestionText = document.querySelector("#suggestionText");
 const profileForm = document.querySelector("#profileForm");
 const profiles = document.querySelector("#profiles");
+const brewLogForm = document.querySelector("#brewLogForm");
+const brewRating = document.querySelector("#brewRating");
+const brewSteepTime = document.querySelector("#brewSteepTime");
+const brewNotes = document.querySelector("#brewNotes");
+const historyInsight = document.querySelector("#historyInsight");
+const historyList = document.querySelector("#historyList");
 
 let selectedTea = teaTypes[0];
 let remainingSeconds = selectedTea.seconds[0];
 let timerId = null;
 let currentSteep = 0;
 let audioContext = null;
+let latestCalculation = null;
 
 function formatTime(totalSeconds) {
   const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
@@ -183,6 +191,25 @@ function notifyFinish() {
 }
 
 function updateCalculator() {
+  const calculation = getBrewCalculation();
+  latestCalculation = calculation;
+  const mode = calculation.mode;
+
+  if (calculation.isTeaBags) {
+    teaAmountResult.textContent = mode === "us" ? `${calculation.bags} tea bag${calculation.bags === 1 ? "" : "s"}` : "Use tea bags";
+    tablespoonResult.textContent = mode === "metric" ? "Not needed" : `${calculation.bags} bag${calculation.bags === 1 ? "" : "s"}`;
+  } else {
+    teaAmountResult.textContent = mode === "us" ? "Use spoon measure" : `${formatGrams(calculation.grams)} g`;
+    tablespoonResult.textContent = mode === "metric" ? `${calculation.tea.gramsPerTbsp} g/tbsp density` : `about ${formatTablespoons(calculation.tablespoons)} tbsp`;
+  }
+
+  calculatorTempResult.textContent = mode === "us" ? `${calculation.tea.tempF} F` : `${calculation.tea.tempC} C / ${calculation.tea.tempF} F`;
+  calculatorSteepResult.textContent = formatSteepMinutes(calculation.steepSeconds);
+  brewSteepTime.value = formatShortTime(calculation.steepSeconds);
+  calculatorNote.textContent = `${calculation.waterLabel} ${calculation.tea.name}, ${calculation.strengthLabel}. ${calculation.ratio.label} Spoon estimate uses ${calculation.tea.name} density.`;
+}
+
+function getBrewCalculation() {
   const tea = teaTypes.find((item) => item.key === calculatorTea.value) || selectedTea;
   const strength = brewStrength.value;
   const effectiveStrength = strength === "normal" && delicateTeaKeys.has(tea.key) ? "delicate" : strength;
@@ -192,22 +219,39 @@ function updateCalculator() {
   const cups = ml / cupMl;
   const mode = measurementMode.value;
   const defaultSeconds = tea.seconds[Math.min(1, tea.seconds.length - 1)];
+  const strengthLabel = effectiveStrength === "delicate" && strength === "normal" ? "normal delicate" : brewStrength.options[brewStrength.selectedIndex].text.toLowerCase();
 
   if (effectiveStrength === "bags") {
     const bags = Math.max(1, Math.round(cups * ratio.bagsPerCup));
-    teaAmountResult.textContent = mode === "us" ? `${bags} tea bag${bags === 1 ? "" : "s"}` : "Use tea bags";
-    tablespoonResult.textContent = mode === "metric" ? "Not needed" : `${bags} bag${bags === 1 ? "" : "s"}`;
-  } else {
-    const grams = waterUnit.value === "cups" ? cups * ratio.gramsPerCup : (ml / 250) * ratio.gramsPer250ml;
-    const tablespoons = grams / tea.gramsPerTbsp;
-    teaAmountResult.textContent = mode === "us" ? "Use spoon measure" : `${formatGrams(grams)} g`;
-    tablespoonResult.textContent = mode === "metric" ? `${tea.gramsPerTbsp} g/tbsp density` : `about ${formatTablespoons(tablespoons)} tbsp`;
+    return {
+      tea,
+      ratio,
+      mode,
+      waterMl: ml,
+      waterCups: cups,
+      waterLabel: formatWater(ml, mode),
+      strengthLabel,
+      steepSeconds: defaultSeconds,
+      isTeaBags: true,
+      bags
+    };
   }
 
-  calculatorTempResult.textContent = mode === "us" ? `${tea.tempF} F` : `${tea.tempC} C / ${tea.tempF} F`;
-  calculatorSteepResult.textContent = formatSteepMinutes(defaultSeconds);
-  const strengthLabel = effectiveStrength === "delicate" && strength === "normal" ? "normal delicate" : brewStrength.options[brewStrength.selectedIndex].text.toLowerCase();
-  calculatorNote.textContent = `${formatWater(ml, mode)} ${tea.name}, ${strengthLabel}. ${ratio.label} Spoon estimate uses ${tea.name} density.`;
+  const grams = waterUnit.value === "cups" ? cups * ratio.gramsPerCup : (ml / 250) * ratio.gramsPer250ml;
+  const tablespoons = grams / tea.gramsPerTbsp;
+  return {
+    tea,
+    ratio,
+    mode,
+    waterMl: ml,
+    waterCups: cups,
+    waterLabel: formatWater(ml, mode),
+    strengthLabel,
+    steepSeconds: defaultSeconds,
+    isTeaBags: false,
+    grams,
+    tablespoons
+  };
 }
 
 function formatGrams(value) {
@@ -253,6 +297,35 @@ function formatSteepMinutes(totalSeconds) {
   const minutes = totalSeconds / 60;
   const label = minutes === 1 ? "minute" : "minutes";
   return `${formatGrams(minutes)} ${label}`;
+}
+
+function formatShortTime(totalSeconds) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = Math.floor(totalSeconds % 60).toString().padStart(2, "0");
+  return `${minutes}:${seconds}`;
+}
+
+function parseSteepInput(value, fallbackSeconds) {
+  const normalized = value.trim();
+  if (!normalized) {
+    return fallbackSeconds;
+  }
+
+  if (normalized.includes(":")) {
+    const [minutes, seconds = "0"] = normalized.split(":");
+    const parsedMinutes = Number(minutes);
+    const parsedSeconds = Number(seconds);
+    if (Number.isFinite(parsedMinutes) && Number.isFinite(parsedSeconds)) {
+      return Math.max(0, Math.round(parsedMinutes * 60 + parsedSeconds));
+    }
+  }
+
+  const parsed = Number(normalized);
+  if (Number.isFinite(parsed)) {
+    return Math.max(0, Math.round(parsed * 60));
+  }
+
+  return fallbackSeconds;
 }
 
 function renderCalculatorTeaOptions() {
@@ -312,6 +385,80 @@ function loadProfiles() {
 
 function saveProfiles(items) {
   window.localStorage.setItem(profileKey, JSON.stringify(items));
+}
+
+function loadHistory() {
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(historyKey) || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveHistory(items) {
+  window.localStorage.setItem(historyKey, JSON.stringify(items));
+}
+
+function renderHistory() {
+  const items = loadHistory();
+  historyList.replaceChildren();
+  historyInsight.textContent = buildHistoryInsight(items);
+
+  if (!items.length) {
+    const empty = document.createElement("p");
+    empty.className = "empty-state";
+    empty.textContent = "No brews logged yet.";
+    historyList.append(empty);
+    return;
+  }
+
+  items.slice(0, 5).forEach((brew) => {
+    const item = document.createElement("article");
+    item.className = "history-item";
+
+    const title = document.createElement("h3");
+    title.textContent = `${brew.teaName} - ${brew.rating}/5`;
+
+    const meta = document.createElement("p");
+    meta.className = "history-meta";
+    [
+      brew.waterLabel,
+      brew.teaAmountLabel,
+      brew.tempLabel,
+      brew.steepLabel
+    ].forEach((text) => {
+      const span = document.createElement("span");
+      span.textContent = text;
+      meta.append(span);
+    });
+
+    item.append(title, meta);
+
+    if (brew.notes) {
+      const notes = document.createElement("p");
+      notes.className = "history-notes";
+      notes.textContent = brew.notes;
+      item.append(notes);
+    }
+
+    historyList.append(item);
+  });
+}
+
+function buildHistoryInsight(items) {
+  if (!items.length) {
+    return "Log a brew to discover your best recipe.";
+  }
+
+  const best = [...items].sort((a, b) => {
+    if (Number(b.rating) !== Number(a.rating)) {
+      return Number(b.rating) - Number(a.rating);
+    }
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  })[0];
+
+  return `You rated ${best.teaName} highest at ${best.tempLabel} for ${best.steepLabel}.`;
 }
 
 function renderProfiles() {
@@ -434,12 +581,49 @@ profileForm.addEventListener("submit", (event) => {
   renderProfiles();
 });
 
+brewLogForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const calculation = latestCalculation || getBrewCalculation();
+  const teaAmountLabel = calculation.isTeaBags
+    ? `${calculation.bags} tea bag${calculation.bags === 1 ? "" : "s"}`
+    : `${formatGrams(calculation.grams)} g / about ${formatTablespoons(calculation.tablespoons)} tbsp`;
+  const actualSteepSeconds = parseSteepInput(brewSteepTime.value, calculation.steepSeconds);
+
+  const brew = {
+    id: window.crypto?.randomUUID ? window.crypto.randomUUID() : Date.now().toString(),
+    createdAt: new Date().toISOString(),
+    teaKey: calculation.tea.key,
+    teaName: calculation.tea.name,
+    waterMl: Math.round(calculation.waterMl),
+    waterCups: Math.round(calculation.waterCups * 10) / 10,
+    waterLabel: calculation.waterLabel,
+    teaAmountLabel,
+    teaGrams: calculation.isTeaBags ? null : Math.round(calculation.grams * 10) / 10,
+    tablespoons: calculation.isTeaBags ? null : Math.round(calculation.tablespoons * 10) / 10,
+    bags: calculation.isTeaBags ? calculation.bags : null,
+    tempC: calculation.tea.tempC,
+    tempF: calculation.tea.tempF,
+    tempLabel: `${calculation.tea.tempF} F`,
+    steepSeconds: actualSteepSeconds,
+    steepLabel: formatShortTime(actualSteepSeconds),
+    rating: brewRating.value,
+    notes: brewNotes.value.trim()
+  };
+
+  saveHistory([brew, ...loadHistory()].slice(0, 50));
+  brewNotes.value = "";
+  brewRating.value = "5";
+  renderHistory();
+});
+
 selectTea("green");
 renderCalculatorTeaOptions();
 updateCalculator();
 renderSteeps();
 renderNotes();
 renderProfiles();
+renderHistory();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {

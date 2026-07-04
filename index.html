@@ -115,6 +115,27 @@
           </div>
         </div>
         <p class="calculator-note" id="calculatorNote">Normal loose-leaf ratio. Spoon estimates vary by tea shape.</p>
+        <form id="brewLogForm" class="brew-log-form">
+          <label>
+            Rating
+            <select id="brewRating">
+              <option value="5">5 - excellent</option>
+              <option value="4">4 - very good</option>
+              <option value="3">3 - good</option>
+              <option value="2">2 - off balance</option>
+              <option value="1">1 - remake</option>
+            </select>
+          </label>
+          <label>
+            Actual steep
+            <input id="brewSteepTime" type="text" maxlength="12" value="4:00">
+          </label>
+          <label>
+            Notes
+            <textarea id="brewNotes" rows="3" maxlength="180" placeholder="Sweet, grassy, too strong..."></textarea>
+          </label>
+          <button type="submit" class="primary">Log brew</button>
+        </form>
       </section>
 
       <section class="panel resteep-panel" aria-labelledby="resteep-title">
@@ -139,6 +160,18 @@
           <p class="label">Suggestion</p>
           <p id="suggestionText">Pick a note to tune your next cup.</p>
         </div>
+      </section>
+
+      <section class="panel history-panel" aria-labelledby="history-title">
+        <div class="section-heading">
+          <p class="eyebrow">Journal</p>
+          <h2 id="history-title">Brew history</h2>
+        </div>
+        <div class="insight-box">
+          <p class="label">Best result</p>
+          <p id="historyInsight">Log a brew to discover your best recipe.</p>
+        </div>
+        <div class="history-list" id="historyList"></div>
       </section>
 
       <section class="panel profile-panel" aria-labelledby="profile-title">
