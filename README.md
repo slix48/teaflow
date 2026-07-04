@@ -21,6 +21,7 @@ Most tea timers stop at countdowns. TeaFlow keeps the practical brewing context 
 - Loose-leaf re-steep tracker for 60, 75, and 90 second steeps.
 - Taste-note suggestions for bitter, weak, grassy, strong, and perfect brews.
 - Responsive layout for desktop and phone screens.
+- PWA install support with an app manifest and offline cache.
 
 ## Setup
 
@@ -36,6 +37,10 @@ python -m http.server 4175
 ```
 
 Then open `http://localhost:4175`.
+
+## Install
+
+After TeaFlow is deployed over HTTPS, supported browsers can install it from the address bar or browser menu. Installed mode opens TeaFlow in a standalone app window and keeps the app shell available offline.
 
 ## Deploy
 

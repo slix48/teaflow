@@ -1,0 +1,29 @@
+{
+  "name": "TeaFlow",
+  "short_name": "TeaFlow",
+  "description": "A peaceful tea brewing timer, calculator, journal, and tasting helper.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#eef5f1",
+  "theme_color": "#276b54",
+  "categories": ["food", "lifestyle", "productivity"],
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "assets/nature-background.png",
+      "sizes": "1536x1024",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "TeaFlow peaceful nature theme"
+    }
+  ]
+}
