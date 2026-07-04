@@ -17,7 +17,7 @@ Most tea timers stop at countdowns. TeaFlow keeps the practical brewing context 
 - Tea timer presets for green, black, oolong, white, herbal, Assam, Sencha, Matcha, Earl Grey, Chamomile, and Pu-erh.
 - Finish feedback with a soft chime and vibration on supported devices.
 - Custom brew profiles with tea name, grams, water amount, temperature, steep time, and rating.
-- Brew calculator using 2-3 g of tea per 250 ml water.
+- Brew calculator with metric, US kitchen, and combined display modes.
 - Loose-leaf re-steep tracker for 60, 75, and 90 second steeps.
 - Taste-note suggestions for bitter, weak, grassy, strong, and perfect brews.
 - Responsive layout for desktop and phone screens.
@@ -61,5 +61,40 @@ https://slix48.github.io/teaflow/
 ## Brew Notes
 
 Brewing ranges are practical starting points, not strict rules. Tea leaf size, water chemistry, vessel, and taste preference all matter.
+
+### General Loose-Leaf Guide
+
+| Water | Tea | Approx. tablespoons |
+| --- | --- | --- |
+| 1 cup / 240 ml | 2.5-3 g | 1 tbsp |
+| 1.5 cups / 360 ml | 4-4.5 g | 1.5 tbsp |
+| 2 cups / 475 ml | 5-6 g | 2 tbsp |
+| 3 cups / 710 ml | 7.5-9 g | 3 tbsp |
+| 4 cups / 950 ml | 10-12 g | 4 tbsp |
+
+### Stronger Brew
+
+| Water | Tea |
+| --- | --- |
+| 1 cup / 240 ml | 4 g / about 1.5 tbsp |
+| 2 cups / 475 ml | 8 g / about 3 tbsp |
+| 4 cups / 950 ml | 16 g / about 6 tbsp |
+
+### Delicate Teas
+
+| Water | Tea |
+| --- | --- |
+| 1 cup / 240 ml | 2-2.5 g / about 1 tbsp |
+| 2 cups / 475 ml | 4-5 g / about 2 tbsp |
+
+### Tea Bags
+
+| Water | Tea bags |
+| --- | --- |
+| 1 cup / 240 ml | 1 |
+| 2 cups / 475 ml | 2 |
+| 4 cups / 950 ml | 4 |
+
+Tablespoon values are approximate. TeaFlow uses different gram-per-tablespoon densities for different tea shapes, so Assam, Sencha, Silver Needle, Gunpowder Green, and rolled oolong can produce different spoon estimates for the same gram target.
 
 Reference ranges were checked against broad tea brewing guidance from Bon Appetit, The Spruce Eats, and gongfu-style temperature notes for green, oolong, black, dark, and Pu-erh teas.

@@ -62,12 +62,59 @@
           <p class="eyebrow">Ratio</p>
           <h2 id="calculator-title">Brew calculator</h2>
         </div>
-        <label for="waterAmount">Water amount</label>
-        <div class="input-row">
-          <input id="waterAmount" type="number" min="50" max="3000" step="25" value="250">
-          <span>ml</span>
+        <div class="calculator-form">
+          <label>
+            Display
+            <select id="measurementMode">
+              <option value="both">Both</option>
+              <option value="metric">Metric</option>
+              <option value="us">US Kitchen</option>
+            </select>
+          </label>
+          <label>
+            Water
+            <input id="waterAmount" type="number" min="0.25" max="20" step="0.25" value="500">
+          </label>
+          <label>
+            Unit
+            <select id="waterUnit">
+              <option value="ml">ml</option>
+              <option value="cups">cups</option>
+            </select>
+          </label>
+          <label>
+            Tea type
+            <select id="calculatorTea"></select>
+          </label>
+          <label>
+            Strength
+            <select id="brewStrength">
+              <option value="normal">Normal</option>
+              <option value="strong">Stronger</option>
+              <option value="delicate">Delicate</option>
+              <option value="bags">Tea bags</option>
+            </select>
+          </label>
         </div>
-        <p class="calculator-result" id="calculatorResult">250 ml water -> 2-3 g tea</p>
+        <div class="calculator-result" id="calculatorResult" aria-live="polite">
+          <div>
+            <p class="label">Tea</p>
+            <p class="result-value" id="teaAmountResult">6 g</p>
+          </div>
+          <div>
+            <p class="label">Kitchen</p>
+            <p class="result-value" id="tablespoonResult">about 2 tbsp</p>
+          </div>
+          <div>
+            <p class="label">Temperature</p>
+            <p class="result-value" id="calculatorTempResult">95 C / 203 F</p>
+          </div>
+          <div>
+            <p class="label">Steep</p>
+            <p class="result-value" id="calculatorSteepResult">4 minutes</p>
+          </div>
+        </div>
+        <p class="calculator-note" id="calculatorNote">Normal loose-leaf ratio. Spoon estimates vary by tea shape.</p>
       </section>
 
       <section class="panel resteep-panel" aria-labelledby="resteep-title">

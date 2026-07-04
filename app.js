@@ -1,16 +1,27 @@
 const teaTypes = [
-  { key: "green", name: "Green", temp: "175 F", range: "2-3 min", seconds: [120, 150, 180] },
-  { key: "black", name: "Black", temp: "200-212 F", range: "3-5 min", seconds: [180, 240, 300] },
-  { key: "oolong", name: "Oolong", temp: "185-205 F", range: "3-5 min", seconds: [180, 240, 300] },
-  { key: "white", name: "White", temp: "170-185 F", range: "4-5 min", seconds: [240, 270, 300] },
-  { key: "herbal", name: "Herbal", temp: "212 F", range: "5-7 min", seconds: [300, 360, 420] },
-  { key: "assam", name: "Assam", temp: "200-212 F", range: "3-5 min", seconds: [180, 240, 300] },
-  { key: "sencha", name: "Sencha", temp: "160-175 F", range: "1-2 min", seconds: [60, 90, 120] },
-  { key: "matcha", name: "Matcha", temp: "160-175 F", range: "30-60 sec whisk", seconds: [30, 45, 60] },
-  { key: "earl-grey", name: "Earl Grey", temp: "200-212 F", range: "3-5 min", seconds: [180, 240, 300] },
-  { key: "chamomile", name: "Chamomile", temp: "212 F", range: "5-7 min", seconds: [300, 360, 420] },
-  { key: "puerh", name: "Pu-erh", temp: "195-212 F", range: "2-4 min", seconds: [120, 180, 240] }
+  { key: "green", name: "Green", temp: "175 F", tempC: 79, tempF: 175, range: "2-3 min", seconds: [120, 150, 180], gramsPerTbsp: 2.4 },
+  { key: "black", name: "Black", temp: "200-212 F", tempC: 96, tempF: 205, range: "3-5 min", seconds: [180, 240, 300], gramsPerTbsp: 3 },
+  { key: "oolong", name: "Oolong", temp: "185-205 F", tempC: 90, tempF: 194, range: "3-5 min", seconds: [180, 240, 300], gramsPerTbsp: 4 },
+  { key: "white", name: "White", temp: "170-185 F", tempC: 80, tempF: 176, range: "4-5 min", seconds: [240, 270, 300], gramsPerTbsp: 1 },
+  { key: "herbal", name: "Herbal", temp: "212 F", tempC: 100, tempF: 212, range: "5-7 min", seconds: [300, 360, 420], gramsPerTbsp: 2.5 },
+  { key: "assam", name: "Assam", temp: "200-212 F", tempC: 95, tempF: 203, range: "3-5 min", seconds: [180, 240, 300], gramsPerTbsp: 3 },
+  { key: "sencha", name: "Sencha", temp: "160-175 F", tempC: 75, tempF: 167, range: "1-2 min", seconds: [60, 90, 120], gramsPerTbsp: 2.5 },
+  { key: "matcha", name: "Matcha", temp: "160-175 F", tempC: 75, tempF: 167, range: "30-60 sec whisk", seconds: [30, 45, 60], gramsPerTbsp: 2 },
+  { key: "earl-grey", name: "Earl Grey", temp: "200-212 F", tempC: 95, tempF: 203, range: "3-5 min", seconds: [180, 240, 300], gramsPerTbsp: 3 },
+  { key: "chamomile", name: "Chamomile", temp: "212 F", tempC: 100, tempF: 212, range: "5-7 min", seconds: [300, 360, 420], gramsPerTbsp: 1.3 },
+  { key: "puerh", name: "Pu-erh", temp: "195-212 F", tempC: 95, tempF: 203, range: "2-4 min", seconds: [120, 180, 240], gramsPerTbsp: 4 },
+  { key: "silver-needle", name: "Silver Needle", temp: "170-180 F", tempC: 77, tempF: 171, range: "4-5 min", seconds: [240, 270, 300], gramsPerTbsp: 1 },
+  { key: "gunpowder-green", name: "Gunpowder Green", temp: "170-180 F", tempC: 77, tempF: 171, range: "2-3 min", seconds: [120, 150, 180], gramsPerTbsp: 5 }
 ];
+
+const cupMl = 240;
+const brewRatios = {
+  normal: { gramsPerCup: 3, gramsPer250ml: 3, label: "Normal loose-leaf ratio." },
+  strong: { gramsPerCup: 4, gramsPer250ml: 4, label: "Stronger brew ratio." },
+  delicate: { gramsPerCup: 2.5, gramsPer250ml: 2.5, label: "Delicate green and white tea ratio." },
+  bags: { bagsPerCup: 1, label: "Tea bag guide." }
+};
+const delicateTeaKeys = new Set(["green", "sencha", "matcha", "white", "silver-needle", "gunpowder-green"]);
 
 const tasteSuggestions = {
   "too bitter": "Lower temp and use a shorter steep next time.",
@@ -33,7 +44,15 @@ const pauseTimer = document.querySelector("#pauseTimer");
 const resetTimer = document.querySelector("#resetTimer");
 const timerStatus = document.querySelector("#timerStatus");
 const waterAmount = document.querySelector("#waterAmount");
-const calculatorResult = document.querySelector("#calculatorResult");
+const measurementMode = document.querySelector("#measurementMode");
+const waterUnit = document.querySelector("#waterUnit");
+const calculatorTea = document.querySelector("#calculatorTea");
+const brewStrength = document.querySelector("#brewStrength");
+const teaAmountResult = document.querySelector("#teaAmountResult");
+const tablespoonResult = document.querySelector("#tablespoonResult");
+const calculatorTempResult = document.querySelector("#calculatorTempResult");
+const calculatorSteepResult = document.querySelector("#calculatorSteepResult");
+const calculatorNote = document.querySelector("#calculatorNote");
 const steepList = document.querySelector("#steepList");
 const nextSteep = document.querySelector("#nextSteep");
 const resetSteeps = document.querySelector("#resetSteeps");
@@ -164,14 +183,89 @@ function notifyFinish() {
 }
 
 function updateCalculator() {
-  const ml = Math.max(Number(waterAmount.value) || 0, 0);
-  const minGrams = (ml * 2) / 250;
-  const maxGrams = (ml * 3) / 250;
-  calculatorResult.textContent = `${ml} ml water -> ${formatGrams(minGrams)}-${formatGrams(maxGrams)} g tea`;
+  const tea = teaTypes.find((item) => item.key === calculatorTea.value) || selectedTea;
+  const strength = brewStrength.value;
+  const effectiveStrength = strength === "normal" && delicateTeaKeys.has(tea.key) ? "delicate" : strength;
+  const ratio = brewRatios[effectiveStrength] || brewRatios.normal;
+  const water = Math.max(Number(waterAmount.value) || 0, 0);
+  const ml = waterUnit.value === "cups" ? water * cupMl : water;
+  const cups = ml / cupMl;
+  const mode = measurementMode.value;
+  const defaultSeconds = tea.seconds[Math.min(1, tea.seconds.length - 1)];
+
+  if (effectiveStrength === "bags") {
+    const bags = Math.max(1, Math.round(cups * ratio.bagsPerCup));
+    teaAmountResult.textContent = mode === "us" ? `${bags} tea bag${bags === 1 ? "" : "s"}` : "Use tea bags";
+    tablespoonResult.textContent = mode === "metric" ? "Not needed" : `${bags} bag${bags === 1 ? "" : "s"}`;
+  } else {
+    const grams = waterUnit.value === "cups" ? cups * ratio.gramsPerCup : (ml / 250) * ratio.gramsPer250ml;
+    const tablespoons = grams / tea.gramsPerTbsp;
+    teaAmountResult.textContent = mode === "us" ? "Use spoon measure" : `${formatGrams(grams)} g`;
+    tablespoonResult.textContent = mode === "metric" ? `${tea.gramsPerTbsp} g/tbsp density` : `about ${formatTablespoons(tablespoons)} tbsp`;
+  }
+
+  calculatorTempResult.textContent = mode === "us" ? `${tea.tempF} F` : `${tea.tempC} C / ${tea.tempF} F`;
+  calculatorSteepResult.textContent = formatSteepMinutes(defaultSeconds);
+  const strengthLabel = effectiveStrength === "delicate" && strength === "normal" ? "normal delicate" : brewStrength.options[brewStrength.selectedIndex].text.toLowerCase();
+  calculatorNote.textContent = `${formatWater(ml, mode)} ${tea.name}, ${strengthLabel}. ${ratio.label} Spoon estimate uses ${tea.name} density.`;
 }
 
 function formatGrams(value) {
-  return Number.isInteger(value) ? value.toString() : value.toFixed(1);
+  const rounded = Math.round(value * 10) / 10;
+  return Number.isInteger(rounded) ? rounded.toString() : rounded.toFixed(1);
+}
+
+function formatTablespoons(value) {
+  if (value <= 0) {
+    return "0";
+  }
+
+  const rounded = Math.round(value * 2) / 2;
+  const whole = Math.floor(rounded);
+  const hasHalf = rounded % 1 !== 0;
+
+  if (whole === 0 && hasHalf) {
+    return "1/2";
+  }
+
+  return hasHalf ? `${whole} 1/2` : whole.toString();
+}
+
+function formatWater(ml, mode) {
+  const cups = ml / cupMl;
+
+  if (mode === "metric") {
+    return `${Math.round(ml)} ml`;
+  }
+
+  if (mode === "us") {
+    return `${formatGrams(cups)} cup${cups === 1 ? "" : "s"}`;
+  }
+
+  return `${Math.round(ml)} ml / ${formatGrams(cups)} cup${cups === 1 ? "" : "s"}`;
+}
+
+function formatSteepMinutes(totalSeconds) {
+  if (totalSeconds < 60) {
+    return `${totalSeconds} seconds`;
+  }
+
+  const minutes = totalSeconds / 60;
+  const label = minutes === 1 ? "minute" : "minutes";
+  return `${formatGrams(minutes)} ${label}`;
+}
+
+function renderCalculatorTeaOptions() {
+  calculatorTea.replaceChildren();
+
+  teaTypes.forEach((tea) => {
+    const option = document.createElement("option");
+    option.value = tea.key;
+    option.textContent = tea.name;
+    calculatorTea.append(option);
+  });
+
+  calculatorTea.value = "assam";
 }
 
 function renderSteeps() {
@@ -293,7 +387,10 @@ pauseTimer.addEventListener("click", () => {
   setTimerStatus("Paused.");
 });
 resetTimer.addEventListener("click", resetToSelectedDuration);
-waterAmount.addEventListener("input", updateCalculator);
+[measurementMode, waterAmount, waterUnit, calculatorTea, brewStrength].forEach((control) => {
+  control.addEventListener("input", updateCalculator);
+  control.addEventListener("change", updateCalculator);
+});
 
 nextSteep.addEventListener("click", () => {
   currentSteep = Math.min(currentSteep + 1, resteeps.length - 1);
@@ -338,6 +435,7 @@ profileForm.addEventListener("submit", (event) => {
 });
 
 selectTea("green");
+renderCalculatorTeaOptions();
 updateCalculator();
 renderSteeps();
 renderNotes();
